@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React-Window no JS Tradicional</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-window/umd/react-window.development.js"></script>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script>
+        const { createElement } = React;
+        const { createRoot } = ReactDOM;
+        const { FixedSizeList } = window.ReactWindow;
+
+        function App() {
+            return createElement(FixedSizeList, {
+                height: 400,
+                width: 300,
+                itemSize: 50,
+                itemCount: 1000,
+                children: ({ index, style }) =>
+                    createElement("div", { style }, `Item ${index}`)
+            });
+        }
+
+        const root = createRoot(document.getElementById("root"));
+        root.render(createElement(App));
+    </script>
+
+</body>
+</html>

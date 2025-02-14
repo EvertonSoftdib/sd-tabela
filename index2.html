@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela Dinâmica</title>
+
+    <script src="./react.development.js"></script>
+    <script src="./react-dom.development.js"></script>
+    <script src="./react-virtualized.js"></script>
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: content-box;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        input, label {
+            width: 100%;
+            display: block;
+        }
+
+        .TableColRight { display: flex; align-items: center; justify-content: flex-end; }
+        .TableColLeft { display: flex; align-items: center; justify-content: flex-start; }
+        .TableColCenter { display: flex; align-items: center; justify-content: center; }
+        
+        .ReactVirtualized__Table__headerRow,
+        .ReactVirtualized__Table__row  {
+            display: flex;
+        }
+
+        .ReactVirtualized__Table__headerColumn {
+            line-height: 50px;
+            padding-left: 10px;
+            padding-right: 10px;
+            box-shadow: inset 0px 0px rgb(0, 0, 0, .15), inset -1px 0px rgb(0, 0, 0, .15), 0 1px rgb(0, 0, 0, .15);
+        }
+
+        .ReactVirtualized__Table__headerRow {
+            background-color: #ededf3;
+            box-shadow: rgb(201, 205, 214) 0px 1px inset, rgb(201, 205, 214) -1px -1px inset, rgb(201, 205, 214) 0px 1px;
+        }
+
+        .TableColAlt {
+            background-color: #e9ecf1;
+        }
+
+        .TableCol {
+            box-shadow: inset 0px 0px rgb(0, 0, 0, .15), inset -1px 0px rgb(0, 0, 0, .15), 0 1px rgb(0, 0, 0, .15);
+            line-height: 30px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        /* Estilo para o contêiner da tabela com scroll */
+        .TableContainer {
+            width: 100%;
+            height: 500px;
+            overflow-x: auto;  /* Scroll horizontal */
+            overflow-y: auto;  /* Scroll vertical */
+        }
+    </style>
+</head>
+<body>
+    <div id="sd-tabela"></div>
+
+    <script>
+        // const { createRoot } = ReactDOM;
+        // const { Table, Column, AutoSizer, ColumnSizer } = ReactVirtualized;
+
+        // function TabelaDinamica() 
+        // {
+        //     // 🔹 Estrutura dinâmica das colunas
+        //     const estrutura = [
+        //         { width: 200, type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Produto', back: 'Produto', name: 'Produto' },
+        //         { width: 80,  type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Descricao', back: 'Descricao', name: 'Descrição', 'sticky-Width': '400px', title: true },
+        //         { width: 200, type: 'label', align: 'center', visible: 'S', mask: '', ref: 'h02Unidade', back: 'Un', name: 'Un' },
+        //         { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo1', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+        //         { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo2', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+        //         { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo3', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+        //         { width: 200, type: 'label', align: 'right', visible: 'N', mask: '', ref: 'h02Saldo4', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+        //     ];
+
+        //     // 🔹 Dados simulados
+        //     const [dados, setDados] = React.useState(
+        //         Array.from({ length: 5 }, (_, i) => ({
+        //             h02Produto: 'a',
+        //             h02Descricao: 'a',
+        //             h02Unidade: 'a',
+        //             h02Saldo1: 'a',
+        //             h02Saldo2: 'a',
+        //             h02Saldo3: 'a',
+        //             h02Saldo4: 'aC'
+        //         }))
+        //     );
+
+        //     // 🔹 Renderiza cada tipo dinamicamente
+        //     function renderizarCelula({ cellData, rowIndex, dataKey }) {
+        //         const coluna = estrutura.find(col => col.ref === dataKey);
+
+        //         if (!coluna) return null;
+
+        //         const alinhamento = coluna.align || 'left';
+        //         const estilo = { textAlign: alinhamento };
+
+        //         if (coluna.type === 'input') {
+        //             return React.createElement("input", {
+        //                 type: "text",
+        //                 value: cellData,
+        //                 "data-ref": coluna.ref,
+        //                 style: estilo
+        //             });
+        //         }
+
+        //         if (coluna.type === 'checkbox') {
+        //             return React.createElement("input", {
+        //                 type: "checkbox",
+        //                 checked: cellData,
+        //                 "data-ref": coluna.ref,
+        //                 style: estilo
+        //             });
+        //         }
+
+        //         return React.createElement("span", {
+        //             // className: alinhamento,
+        //             "data-ref": coluna.ref,
+        //             onDoubleClick: () => alert(`${coluna.back}: ${cellData}`),
+        //         }, cellData);
+        //     }
+
+        //     return React.createElement("div", { className: "TableContainer" },
+        //         React.createElement(AutoSizer, null, ({ width, height }) => {
+        //             // 🔹 Divide a largura total de forma igual entre as colunas
+        //             const larguraColuna = width / estrutura.length;
+
+        //             return React.createElement(Table, {
+        //                 width: width,
+        //                 height: height,
+        //                 headerHeight: 50,
+        //                 rowHeight: 30,
+        //                 rowCount: dados.length,
+        //                 rowGetter: ({ index }) => dados[index],
+        //                 rowClassName: ({ index }) => (index % 2 === 0 ? "" : "TableColAlt"),
+        //                 children: estrutura.filter((col) => col.visible == "S").map(col => {
+        //                     let classes = [ "TableCol" ]
+
+        //                     if (col.align == "center")
+        //                         classes.push("TableColCenter")
+        //                     if (col.align == "right")
+        //                         classes.push("TableColRight")
+        //                     if (col.align == "left")
+        //                         classes.push("TableColLeft")
+
+        //                     return React.createElement(Column, {
+        //                         key: col.ref,
+        //                         label: col.name,
+        //                         dataKey: col.ref,
+        //                         className: classes.join(" "),
+        //                         width: col.width ? col.width : larguraColuna,
+        //                         cellRenderer: renderizarCelula
+        //                     })
+        //                 })
+        //             });
+        //         })
+        //     );
+        // }
+
+        
+    </script>
+    <script src="./sd-tabela.js"></script>
+    <script>
+        let tables = []
+
+        window.addEventListener('load', function() {
+
+            tables['item'] = new sdTabela({
+                id: "tabela", 
+                structure: [
+                    { width: 200, type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Produto', back: 'Produto', name: 'Produto' },
+                    { width: 80,  type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Descricao', back: 'Descricao', name: 'Descrição', 'sticky-Width': '400px', title: true },
+                    { width: 200, type: 'label', align: 'center', visible: 'S', mask: '', ref: 'h02Unidade', back: 'Un', name: 'Un' },
+                    { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo1', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+                    { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo2', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+                    { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo3', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+                    { width: 200, type: 'label', align: 'right', visible: 'N', mask: '', ref: 'h02Saldo4', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+                ]
+            })
+        })
+    </script>
+</body>
+</html>
