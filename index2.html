@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabela Dinâmica</title>
 
-    <script src="./react.development.js"></script>
-    <script src="./react-dom.development.js"></script>
-    <script src="./react-virtualized.js"></script>
+    
 
     <style>
         * {
@@ -39,7 +37,7 @@
         }
 
         .ReactVirtualized__Table__headerColumn {
-            line-height: 50px;
+            line-height: 40px;
             padding-left: 10px;
             padding-right: 10px;
             box-shadow: inset 0px 0px rgb(0, 0, 0, .15), inset -1px 0px rgb(0, 0, 0, .15), 0 1px rgb(0, 0, 0, .15);
@@ -47,11 +45,17 @@
 
         .ReactVirtualized__Table__headerRow {
             background-color: #ededf3;
-            box-shadow: rgb(201, 205, 214) 0px 1px inset, rgb(201, 205, 214) -1px -1px inset, rgb(201, 205, 214) 0px 1px;
+            box-shadow: rgb(201, 205, 214) 0px 1px inset, rgb(201, 205, 214) -1px -1px inset;
         }
 
         .TableColAlt {
             background-color: #e9ecf1;
+        }
+
+        .TableHeaderName {
+            font-weight: 700;
+            font-size: 11px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
         }
 
         .TableCol {
@@ -68,11 +72,55 @@
             overflow-x: auto;  /* Scroll horizontal */
             overflow-y: auto;  /* Scroll vertical */
         }
+
+        .Painel {}
+
+        .PainelHeader {
+            height: 40px;
+            width: 100%;
+            border-radius: 3px 3px 0 0;
+            background: rgb(185 195 213);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            
+            cursor: pointer;
+        }
+
+        .PainelHeaderSearch {
+            margin-right: 10px;
+        }
+
+        .PainelHeaderConfigs {
+            margin-left: 10px;
+        }
+
+        .PainelHeaderSearchInput {
+            border-radius: .15rem;
+            border: solid 1px #9e9e9e;
+            padding-left: 5px;
+            padding-right: 5px;
+            width: 205px;
+            font-size: .75rem;
+            padding: 5px;
+        }
+        
+        .PainelHeaderSearchInput:hover
+        {
+            border: solid 1px #1E90FF;
+        }
+        
+        .PainelHeaderSearchInput:focus
+        {
+            z-index: 2;
+            border: solid 1px #1E90FF;
+            box-shadow: 0 0 0 .15rem #007dfa3a;
+            outline: none;
+        }
     </style>
 </head>
 <body>
     <div id="sd-tabela"></div>
-
     <script>
         // const { createRoot } = ReactDOM;
         // const { Table, Column, AutoSizer, ColumnSizer } = ReactVirtualized;
@@ -176,23 +224,35 @@
 
         
     </script>
+    <script src="./react.development.js"></script>
+    <script src="./react-dom.development.js"></script>
+    <script src="./react-virtualized.js"></script>
     <script src="./sd-tabela.js"></script>
     <script>
         let tables = []
 
         window.addEventListener('load', function() {
 
-            tables['item'] = new sdTabela({
+            tables['item'] = renderTable({
                 id: "tabela", 
                 structure: [
                     { width: 200, type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Produto', back: 'Produto', name: 'Produto' },
                     { width: 80,  type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Descricao', back: 'Descricao', name: 'Descrição', 'sticky-Width': '400px', title: true },
                     { width: 200, type: 'label', align: 'center', visible: 'S', mask: '', ref: 'h02Unidade', back: 'Un', name: 'Un' },
                     { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo1', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
-                    { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo2', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
-                    { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo3', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
-                    { width: 200, type: 'label', align: 'right', visible: 'N', mask: '', ref: 'h02Saldo4', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
-                ]
+                    { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo2', back: 'Saldo', name: 'Saldo 1', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+                    { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo3', back: 'Saldo', name: 'Saldo 2', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+                    { width: 200, type: 'label', align: 'right', visible: 'N', mask: '', ref: 'h02Saldo4', back: 'Saldo', name: 'Saldo 3', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
+                ],
+                dados: Array.from({ length: 5 }, (_, i) => ({
+                    h02Produto: i * 1,
+                    h02Descricao: i * 2,
+                    h02Unidade: i * 3,
+                    h02Saldo1: i * 4,
+                    h02Saldo2: i * 5,
+                    h02Saldo3: i * 6,
+                    h02Saldo4: i * 7
+                }))
             })
         })
     </script>
