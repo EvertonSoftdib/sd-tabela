@@ -8,14 +8,19 @@ class sdTabela extends React.Component {
 
         const { id, options, structure, dados, target } = props;
 
-        console.log(props)
+        // Carregar ordem das colunas do localStorage ou usar ordem padrão
+        const savedOrder = JSON.parse(localStorage.getItem("tableColumnsOrder")) || null;
+        const initialStructure = savedOrder 
+            ? this.reorderStructureFromSaved(structure, savedOrder)
+            : structure;
 
         this.state = {
             sortBy: null,
             sortDirection: "ASC",
             filteredSearch: "",
-            dados: [],
-            filteredData: []
+            structure: initialStructure,
+            dados: dados,
+            filteredData: dados
         }
         
         this.valueToBeFound = null
@@ -137,9 +142,6 @@ class sdTabela extends React.Component {
                 element: null
             },
         }
-
-        this.configureStructure(structure)
-        this.configureData(dados)
     }
 
     // ######    ####    ######   #####    ##  ##   ######   ##  ##   #####      ##
@@ -149,35 +151,12 @@ class sdTabela extends React.Component {
     // ##           ##     ##     ## ##    ##  ##     ##     ##  ##   ## ##    ######
     // ######    ####      ##     ##  ##   ######     ##     ######   ##  ##   ##  ##
 
-    configureData(data = [])
-    {
-        // Remove a ultima linha que o COBOL manda em branco
-        data.pop()
-
-        this.dados = data
-        this.filteredData = this.dados;
-    }
-    
-    configureStructure(data = [{
-        width: 200, 
-        type: 'label', // input // checkbox 
-        align: 'left', // center | right | left
-        visible: 'S', // S | N
-        mask: undefined, 
-        ref: 'h02Produto', 
-        back: 'Produto', 
-        name: 'Produto'
-    }])
-    {
-        this.structure = data
-    }
-
     loadStructureSaved()
     {
         const savedWidths = JSON.parse(localStorage.getItem("tableWidths"));
 
         if (savedWidths) {
-            this.structure = this.structure.map(col => {
+            this.state.structure = this.state.structure.map(col => {
                 const savedCol = savedWidths.find(sc => sc.ref === col.ref);
                 return savedCol ? { ...col, width: savedCol.width } : col;
             });
@@ -188,7 +167,7 @@ class sdTabela extends React.Component {
     {
         this.loadStructureSaved()
 
-        return this.structure.filter((col) => col.visible == "S")
+        return this.state.structure.filter((col) => col.visible == "S")
     }
 
     //  ####    ######   ##       ##  ##   ##         ##
@@ -200,7 +179,7 @@ class sdTabela extends React.Component {
 
     renderCell(cellData, rowIndex, dataKey)
     {
-        const column = this.structure.find(col => col.ref === dataKey);
+        const column = this.state.structure.find(col => col.ref === dataKey);
 
         if (!column) return null;
 
@@ -273,59 +252,92 @@ class sdTabela extends React.Component {
 
     renderHeader(column, dataKey, sortBy, sortDirection) {
         const isSorted = sortBy === dataKey;
+        const isDragging = this.state.draggedColumn === dataKey;
+        const isDragOver = this.state.dragOverColumn === dataKey;
         
         let sortIcon = null;
-
+        
+        const ICON_GRIP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="16" height="16"><path fill="currentColor" d="M40 352c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40v-48c0-22.1-17.9-40-40-40H40zm192 0c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40v-48c0-22.1-17.9-40-40-40h-48zM40 320h48c22.1 0 40-17.9 40-40v-48c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40zm192 0h48c22.1 0 40-17.9 40-40v-48c0-22.1-17.9-40-40-40h-48c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40z"/></svg>`;
+        const ICON_RESIZE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14"><path d="M377.9 169.9V216H134.1v-46.1c0-21.4-25.9-32.1-41-17L7 239c-9.4 9.4-9.4 24.6 0 33.9l86.1 86.1c15.1 15.1 41 4.4 41-17V296h243.9v46.1c0 21.4 25.9 32.1 41 17l86.1-86.1c9.4-9.4 9.4-24.6 0-33.9l-86.1-86.1c-15.1-15.1-41-4.4-41 17z"/></svg>`;
         const ICON_IS_SORT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="12" height="12"><path d="M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41zm255-105L177 64c-9.4-9.4-24.6-9.4-33.9 0L24 183c-15.1 15.1-4.4 41 17 41h238c21.4 0 32.1-25.9 17-41z"/></svg>`
         const ICON_SORT_ASC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="12" height="12"><path d="M279 224H41c-21.4 0-32.1-25.9-17-41L143 64c9.4-9.4 24.6-9.4 33.9 0l119 119c15.2 15.1 4.5 41-16.9 41z"/></svg>`
         const ICON_SORT_DESC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="12" height="12"><path d="M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41z"/>`
 
         if (isSorted) { sortIcon = sortDirection === "ASC" ? ICON_SORT_ASC : ICON_SORT_DESC; }
 
+        const headerStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }
+
+        // Ícone de drag (FontAwesome grip)
+
+        
+        const headerClasses = ['TableHeader'];
+        if (isDragging) headerClasses.push('dragging');
+        if (isDragOver) headerClasses.push('drag-over');
+
         return React.createElement("div", {
-                className: "TableHeader",
-                style: { display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" },
+                className: headerClasses,
+                style: headerStyle,
             }, 
-            React.createElement("span", { style: { userSelect: "none"  }, className: 'TableHeaderName' }, column.name),
-            React.createElement("span", { dangerouslySetInnerHTML: { __html: `${sortIcon || ICON_IS_SORT}` } }),
+            React.createElement("div", {
+                    className: "drag-handle",
+                    draggable: true,
+                    onDragStart: (e) => this.handleDragStart(e, dataKey),
+                    onDragOver: (e) => this.handleDragOver(e, dataKey),
+                    onDrop: (e) => this.handleDrop(e, dataKey),
+                    onDragEnd: this.handleDragEnd,
+                    "data-testid": `drag-handle-${dataKey}`,
+                },
+                React.createElement("span", { 
+                    dangerouslySetInnerHTML: { __html: ICON_GRIP }
+                }),
+                React.createElement("span", { style: { userSelect: "none", marginTop: '-1px' }, className: 'TableHeaderName' }, column.name),
+                React.createElement("span", { dangerouslySetInnerHTML: { __html: `${sortIcon || ICON_IS_SORT}` } })
+            ),
+
             React.createElement("div", {
                 className: "resize-handle",
                 style: { 
                     position: "absolute", 
                     right: 0, 
                     top: 0, 
-                    width: "5px", 
+                    width: "20px", 
                     height: "100%", 
                     cursor: "col-resize" 
                 },
-                onMouseDown: (e) => this.startResize(e, column.ref)
+                dangerouslySetInnerHTML: {
+                    __html: ICON_RESIZE
+                },
+                onMouseDown: (e) => {
+                    e.stopPropagation();
+                    this.startResize(e, column.ref)
+                }
             })
         );
     }
 
-    renderColumn(column)
-    {
-        let classes = [ "TableCol" ]
+    // renderColumn(column)
+    // {
+    //     let classes = [ "TableCol" ]
 
-        if (column.align == "center")
-            classes.push("TableColCenter")
-        if (column.align == "right")
-            classes.push("TableColRight")
-        if (column.align == "left")
-            classes.push("TableColLeft")
+    //     if (column.align == "center")
+    //         classes.push("TableColCenter")
+    //     if (column.align == "right")
+    //         classes.push("TableColRight")
+    //     if (column.align == "left")
+    //         classes.push("TableColLeft")
 
-        return React.createElement(Column, {
-            key: column.ref,
-            label: column.name,
-            dataKey: column.ref,
-            className: classes.join(" "),
-            disableSort: false,
-            flexGrow: 1,
-            width: column.width ? column.width : larguraColuna,
-            cellRenderer: ({cellData, rowIndex, dataKey}) => this.renderCell(cellData, rowIndex, dataKey),
-            headerRenderer: ({ dataKey, sortBy, sortDirection }) => this.renderHeader(column, dataKey, sortBy, sortDirection)
-        })
-    }
+    //     return React.createElement(Column, {
+    //         key: column.ref,
+    //         label: column.name,
+    //         dataKey: column.ref,
+    //         className: classes.join(" "),
+    //         disableSort: false,
+    //         flexGrow: 1,
+    //         width: column.width ? column.width : larguraColuna,
+    //         cellRenderer: ({cellData, rowIndex, dataKey}) => this.renderCell(cellData, rowIndex, dataKey),
+    //         headerRenderer: ({ dataKey, sortBy, sortDirection }) => this.renderHeader(column, dataKey, sortBy, sortDirection)
+    //     })
+    // }
     treatmentGlobalNN() {
         globalNN.pop()
 
@@ -377,7 +389,7 @@ class sdTabela extends React.Component {
     }
 
     sortTable ({ sortBy, sortDirection }) {
-        const sortedData = [...this.filteredData].sort((a, b) => {
+        const sortedData = [...this.state.filteredData].sort((a, b) => {
             const aValue = a[sortBy] || '';
             const bValue = b[sortBy] || '';
     
@@ -385,18 +397,19 @@ class sdTabela extends React.Component {
             if (aValue > bValue) return sortDirection === 'ASC' ? 1 : -1;
             return 0;
         });
-    
-        this.filteredData = sortedData; // Atualiza os dados ordenados
-        this.state.sortBy = sortBy;
-        this.state.sortDirection = sortDirection;
-    
-        this.build(); // Re-renderiza a tabela
+
+        this.setState({
+            ...this.state,
+            filteredData: sortedData,
+            sortBy: sortBy,
+            sortDirection: sortDirection
+        })
     };
 
     startResize(event, columnRef) {
         this.resizingColumn = columnRef;
         this.startX = event.clientX;
-        this.startWidth = this.structure.find(col => col.ref === columnRef).width || 200;
+        this.startWidth = this.state.structure.find(col => col.ref === columnRef).width || 200;
     
         document.addEventListener("mousemove", this.onResize);
         document.addEventListener("mouseup", this.stopResize);
@@ -407,14 +420,18 @@ class sdTabela extends React.Component {
         
         const delta = event.clientX - this.startX;
         const newWidth = Math.max(50, this.startWidth + delta);
+        let temp_structure = this.state.structure
         
-        this.structure = this.structure.map(col => 
+        temp_structure = temp_structure.map(col => 
             col.ref === this.resizingColumn ? { ...col, width: newWidth } : col
         );
     
-        localStorage.setItem("tableWidths", JSON.stringify(this.structure.map(col => ({ ref: col.ref, width: col.width }))));
+        localStorage.setItem("tableWidths", JSON.stringify(temp_structure.map(col => ({ ref: col.ref, width: col.width }))));
     
-        this.build(); // Re-renderiza a tabela
+        this.setState({
+            ...this.state,
+            structure: temp_structure
+        }) // Re-renderiza a tabela
     }
 
     stopResize = () => {
@@ -425,17 +442,125 @@ class sdTabela extends React.Component {
 
     filterTable() {
         const lowerText = this.state.filteredSearch.toLowerCase();
-    
-        this.filteredData = this.dados.filter(row => 
-            Object.values(row).some(value => 
-                value && value.toString().toLowerCase().includes(lowerText)
-            )
-        );
 
-        this.build(); // Re-renderiza a tabela com os dados filtrados
+        console.log(lowerText)
+
+        if(lowerText == "")
+        {
+            this.setState({
+                ...this.state,
+                filteredData: this.state.dados
+            })
+            
+            return;
+        }
+        
+        this.filteredData = this.state.dados.filter(row => {
+            return Object.values(row).join("").includes(lowerText)
+        });
+
+        this.setState({
+            ...this.state,
+            filteredData: this.filteredData
+        })
     }
 
+    // Manipuladores de drag and drop
+    handleDragStart = (e, columnRef) => {
+        this.setState({ draggedColumn: columnRef });
+    }
+
+    handleDragOver = (e, columnRef) => {
+        e.preventDefault();
+        if (columnRef !== this.state.dragOverColumn) {
+            this.setState({ dragOverColumn: columnRef });
+        }
+    }
+
+    handleDrop = (e, targetColumnRef) => {
+        e.preventDefault();
+        const { draggedColumn } = this.state;
+        
+        if (!draggedColumn || draggedColumn === targetColumnRef) return;
+
+        const newStructure = [...this.state.structure];
+        const draggedIndex = newStructure.findIndex(col => col.ref === draggedColumn);
+        const targetIndex = newStructure.findIndex(col => col.ref === targetColumnRef);
+
+        // Reordenar as colunas
+        const [draggedCol] = newStructure.splice(draggedIndex, 1);
+        newStructure.splice(targetIndex, 0, draggedCol);
+
+        // Salvar a nova ordem no localStorage
+        const columnOrder = newStructure.map(col => col.ref);
+        localStorage.setItem("tableColumnsOrder", JSON.stringify(columnOrder));
+
+        // Atualizar o estado
+        this.setState({
+            structure: newStructure,
+            draggedColumn: null,
+            dragOverColumn: null
+        });
+    }
+
+    handleDragEnd = () => {
+        this.setState({
+            draggedColumn: null,
+            dragOverColumn: null
+        });
+    }
+
+    // Método para reordenar a estrutura baseado na ordem salva
+    reorderStructureFromSaved(structure, savedOrder) {
+        const orderedStructure = [...structure];
+        savedOrder.forEach((ref, index) => {
+            const currentIndex = orderedStructure.findIndex(col => col.ref === ref);
+            if (currentIndex !== -1 && currentIndex !== index) {
+                const [column] = orderedStructure.splice(currentIndex, 1);
+                orderedStructure.splice(index, 0, column);
+            }
+        });
+        return orderedStructure;
+    }
+
+    renderColumn(column) {
+        // Verificação adicional para evitar colunas inválidas
+        if (!column || column.visible !== "S") {
+            return null;
+        }
+    
+        let classes = ["TableCol"];
+    
+        if (column.align == "center")
+            classes.push("TableColCenter");
+        if (column.align == "right")
+            classes.push("TableColRight");
+        if (column.align == "left")
+            classes.push("TableColLeft");
+    
+        // Certifique-se de que a largura tenha um valor padrão adequado
+        const larguraColuna = column.width || 100;
+    
+        return React.createElement(Column, {
+            key: column.ref,
+            label: column.name,
+            dataKey: column.ref,
+            className: classes.join(" "),
+            disableSort: false,
+            // Remova flexGrow para evitar espaço extra que gera coluna em branco
+            flexGrow: 0,
+            flexShrink: 0, 
+            width: larguraColuna,
+            cellRenderer: ({cellData, rowIndex, dataKey}) => this.renderCell(cellData, rowIndex, dataKey),
+            headerRenderer: ({ dataKey, sortBy, sortDirection }) => this.renderHeader(column, dataKey, sortBy, sortDirection)
+        });
+    }
+    
+    // ARQUIVO: sd-tabela.js - Substitua o método render
+    // Atualização para o método render no sd-tabela.js
     render() {
+        const visibleColumns = this.getStructure();
+        
         return React.createElement("div", { className: "Painel" }, 
             React.createElement("div", { className: "PainelHeader"}, 
                 React.createElement("div", { className: "PainelHeaderConfigs"}, 
@@ -454,26 +579,58 @@ class sdTabela extends React.Component {
                             if (e.key === "Enter") this.filterTable();
                         }
                     })
-                ),    
+                )
             ),
             React.createElement("div", { className: "TableContainer" },
-            React.createElement(AutoSizer, null, ({ width, height }) => {
-                // 🔹 Divide a largura total de forma igual entre as colunas
-                return React.createElement(Table, {
-                    width: width,
-                    height: height,
-                    headerHeight: 40,
-                    rowHeight: 30,
-                    rowCount: this.filteredData.length,
-                    rowGetter: ({ index }) => this.filteredData[index],
-                    rowClassName: ({ index }) => (index % 2 === 0 ? "" : "TableColAlt"),
-                    sort: this.sortTable.bind(this), // Adiciona a funcionalidade de ordenação
-                    sortBy: this.state.sortBy,
-                    sortDirection: this.state.sortDirection,
-                    children: this.getStructure().map((col) => this.renderColumn(col))
-                });
-            })
-        ));
+                React.createElement(AutoSizer, null, ({ width, height }) => {
+                    // Calcular a largura total disponível (deixar margem para scroll)
+                    const availableWidth = width - 20; // Reservar espaço para scrollbar
+                    // Calcular a largura total definida das colunas
+                    const totalDefinedWidth = visibleColumns.reduce((total, col) => total + (col.width || 100), 0);
+                    
+                    // Determinar o fator de escala para ajustar as colunas para preencher o espaço
+                    const scaleFactor = totalDefinedWidth < availableWidth ? availableWidth / totalDefinedWidth : 1;
+                    
+                    return React.createElement(Table, {
+                        width: width,
+                        height: height,
+                        headerHeight: 40,
+                        rowHeight: 30,
+                        rowCount: this.state.filteredData.length,
+                        rowGetter: ({ index }) => this.state.filteredData[index],
+                        rowClassName: ({ index }) => (index % 2 === 0 ? "" : "TableColAlt"),
+                        sort: this.sortTable.bind(this),
+                        sortBy: this.state.sortBy,
+                        sortDirection: this.state.sortDirection,
+                        overscanRowCount: 10, // Carregar mais linhas para evitar problemas de scroll
+                        children: visibleColumns.map((col) => {
+                            // Aplicar o fator de escala à largura da coluna
+                            // Assegura que a largura mínima de cada coluna seja respeitada
+                const minColWidth = 80; // Largura mínima para ver o conteúdo
+                const baseWidth = col.width || 100;
+                const adjustedWidth = Math.max(minColWidth, Math.floor(baseWidth * scaleFactor));
+                            
+                            return React.createElement(Column, {
+                                key: col.ref,
+                                label: col.name,
+                                dataKey: col.ref,
+                                className: ["TableCol", 
+                                    col.align === "center" ? "TableColCenter" : 
+                                    col.align === "right" ? "TableColRight" : "TableColLeft"
+                                ].join(" "),
+                                disableSort: false,
+                                width: adjustedWidth,
+                                // Não utilize flexGrow para evitar colunas extras
+                                flexGrow: 0,
+                                flexShrink: 0,
+                                cellRenderer: ({cellData, rowIndex, dataKey}) => this.renderCell(cellData, rowIndex, dataKey),
+                                headerRenderer: ({ dataKey, sortBy, sortDirection }) => this.renderHeader(col, dataKey, sortBy, sortDirection)
+                            });
+                        })
+                    });
+                })
+            )
+        );
     }
 }
 
@@ -481,5 +638,5 @@ const renderTable = ({ id, options, structure, dados, target = "#sd-tabela" }) =
     // Montando o componente no DOM
     const container = document.getElementById("sd-tabela");
     const root = ReactDOM.createRoot(container);
-    root.render(React.createElement(sdTabela, id, options, structure, dados, target));
+    root.render(React.createElement(sdTabela, { id, options, structure, dados, target }));
 }

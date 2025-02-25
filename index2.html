@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabela Dinâmica</title>
 
-    
-
     <style>
         * {
             padding: 0;
@@ -38,9 +36,12 @@
 
         .ReactVirtualized__Table__headerColumn {
             line-height: 40px;
+            box-shadow: inset 0px 0px rgb(0, 0, 0, .15), inset -1px 0px rgb(0, 0, 0, .15), 0 1px rgb(0, 0, 0, .15);
+        }
+
+        .TableHeaderContent {
             padding-left: 10px;
             padding-right: 10px;
-            box-shadow: inset 0px 0px rgb(0, 0, 0, .15), inset -1px 0px rgb(0, 0, 0, .15), 0 1px rgb(0, 0, 0, .15);
         }
 
         .ReactVirtualized__Table__headerRow {
@@ -54,15 +55,15 @@
 
         .TableHeaderName {
             font-weight: 700;
-            font-size: 11px;
+            font-size: 12px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
         }
 
         .TableCol {
             box-shadow: inset 0px 0px rgb(0, 0, 0, .15), inset -1px 0px rgb(0, 0, 0, .15), 0 1px rgb(0, 0, 0, .15);
             line-height: 30px;
-            padding-left: 10px;
-            padding-right: 10px;
+            /* padding-left: 10px;
+            padding-right: 10px; */
         }
 
         /* Estilo para o contêiner da tabela com scroll */
@@ -72,8 +73,6 @@
             overflow-x: auto;  /* Scroll horizontal */
             overflow-y: auto;  /* Scroll vertical */
         }
-
-        .Painel {}
 
         .PainelHeader {
             height: 40px;
@@ -117,113 +116,99 @@
             box-shadow: 0 0 0 .15rem #007dfa3a;
             outline: none;
         }
+
+        .TableHeader {
+            cursor: grab;
+            padding: 0px 10px;
+        }
+
+        .header-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0 8px;
+            pointer-events: none; /* Previne interferência com drag/resize */
+        }
+
+        .TableHeader:active {
+            cursor: grabbing;
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* opacity: 0; */
+            transition: opacity 0.2s;
+        }
+
+        .TableHeader .drag-handle {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+        }
+
+        .TableHeader.dragging {
+            cursor: grabbing;
+            opacity: 0.7;
+        }
+
+        .TableHeader.drag-over {
+            position: relative;
+        }
+
+        .TableHeader.drag-over::before {
+            content: "";
+            position: absolute;
+            left: -2px;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background-color: #1E90FF;
+            border-radius: 2px;
+        }
+
+        .TableContainer {
+            width: 100%;
+            height: 500px;
+            overflow-x: auto;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .ReactVirtualized__Table {
+            position: relative;
+            z-index: 1;
+        }
+
+        .ReactVirtualized__Table__headerRow {
+            position: sticky !important;
+            top: 0;
+            z-index: 2;
+            background-color: #ededf3;
+        }
+
+        /* Garante que o scroll não sobreponha as células */
+        .ReactVirtualized__Table__Grid {
+            outline: none;
+        }
+
+        /* Previne coluna extra */
+        .ReactVirtualized__Table__rowColumn:empty {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
     <div id="sd-tabela"></div>
-    <script>
-        // const { createRoot } = ReactDOM;
-        // const { Table, Column, AutoSizer, ColumnSizer } = ReactVirtualized;
-
-        // function TabelaDinamica() 
-        // {
-        //     // 🔹 Estrutura dinâmica das colunas
-        //     const estrutura = [
-        //         { width: 200, type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Produto', back: 'Produto', name: 'Produto' },
-        //         { width: 80,  type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Descricao', back: 'Descricao', name: 'Descrição', 'sticky-Width': '400px', title: true },
-        //         { width: 200, type: 'label', align: 'center', visible: 'S', mask: '', ref: 'h02Unidade', back: 'Un', name: 'Un' },
-        //         { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo1', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
-        //         { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo2', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
-        //         { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo3', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
-        //         { width: 200, type: 'label', align: 'right', visible: 'N', mask: '', ref: 'h02Saldo4', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
-        //     ];
-
-        //     // 🔹 Dados simulados
-        //     const [dados, setDados] = React.useState(
-        //         Array.from({ length: 5 }, (_, i) => ({
-        //             h02Produto: 'a',
-        //             h02Descricao: 'a',
-        //             h02Unidade: 'a',
-        //             h02Saldo1: 'a',
-        //             h02Saldo2: 'a',
-        //             h02Saldo3: 'a',
-        //             h02Saldo4: 'aC'
-        //         }))
-        //     );
-
-        //     // 🔹 Renderiza cada tipo dinamicamente
-        //     function renderizarCelula({ cellData, rowIndex, dataKey }) {
-        //         const coluna = estrutura.find(col => col.ref === dataKey);
-
-        //         if (!coluna) return null;
-
-        //         const alinhamento = coluna.align || 'left';
-        //         const estilo = { textAlign: alinhamento };
-
-        //         if (coluna.type === 'input') {
-        //             return React.createElement("input", {
-        //                 type: "text",
-        //                 value: cellData,
-        //                 "data-ref": coluna.ref,
-        //                 style: estilo
-        //             });
-        //         }
-
-        //         if (coluna.type === 'checkbox') {
-        //             return React.createElement("input", {
-        //                 type: "checkbox",
-        //                 checked: cellData,
-        //                 "data-ref": coluna.ref,
-        //                 style: estilo
-        //             });
-        //         }
-
-        //         return React.createElement("span", {
-        //             // className: alinhamento,
-        //             "data-ref": coluna.ref,
-        //             onDoubleClick: () => alert(`${coluna.back}: ${cellData}`),
-        //         }, cellData);
-        //     }
-
-        //     return React.createElement("div", { className: "TableContainer" },
-        //         React.createElement(AutoSizer, null, ({ width, height }) => {
-        //             // 🔹 Divide a largura total de forma igual entre as colunas
-        //             const larguraColuna = width / estrutura.length;
-
-        //             return React.createElement(Table, {
-        //                 width: width,
-        //                 height: height,
-        //                 headerHeight: 50,
-        //                 rowHeight: 30,
-        //                 rowCount: dados.length,
-        //                 rowGetter: ({ index }) => dados[index],
-        //                 rowClassName: ({ index }) => (index % 2 === 0 ? "" : "TableColAlt"),
-        //                 children: estrutura.filter((col) => col.visible == "S").map(col => {
-        //                     let classes = [ "TableCol" ]
-
-        //                     if (col.align == "center")
-        //                         classes.push("TableColCenter")
-        //                     if (col.align == "right")
-        //                         classes.push("TableColRight")
-        //                     if (col.align == "left")
-        //                         classes.push("TableColLeft")
-
-        //                     return React.createElement(Column, {
-        //                         key: col.ref,
-        //                         label: col.name,
-        //                         dataKey: col.ref,
-        //                         className: classes.join(" "),
-        //                         width: col.width ? col.width : larguraColuna,
-        //                         cellRenderer: renderizarCelula
-        //                     })
-        //                 })
-        //             });
-        //         })
-        //     );
-        // }
-
-        
-    </script>
+    
     <script src="./react.development.js"></script>
     <script src="./react-dom.development.js"></script>
     <script src="./react-virtualized.js"></script>
@@ -237,14 +222,14 @@
                 id: "tabela", 
                 structure: [
                     { width: 200, type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Produto', back: 'Produto', name: 'Produto' },
-                    { width: 80,  type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Descricao', back: 'Descricao', name: 'Descrição', 'sticky-Width': '400px', title: true },
+                    { width: 200,  type: 'label', align: 'left', visible: 'S', mask: '', ref: 'h02Descricao', back: 'Descricao', name: 'Descrição', 'sticky-Width': '400px', title: true },
                     { width: 200, type: 'label', align: 'center', visible: 'S', mask: '', ref: 'h02Unidade', back: 'Un', name: 'Un' },
                     { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo1', back: 'Saldo', name: 'Saldo', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
                     { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo2', back: 'Saldo', name: 'Saldo 1', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
                     { width: 200, type: 'label', align: 'right', visible: 'S', mask: '', ref: 'h02Saldo3', back: 'Saldo', name: 'Saldo 2', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
                     { width: 200, type: 'label', align: 'right', visible: 'N', mask: '', ref: 'h02Saldo4', back: 'Saldo', name: 'Saldo 3', cobol: "BTN-CARREGAR-ESTOQUE", loading: true, onlyNumbers: true, size: '15', max: '18', class_icon: 'cAtualizaEstoque', title_icon: "Carregar Saldo", textalign: "right", readonly: "S", classid: "h02Saldo" },
                 ],
-                dados: Array.from({ length: 5 }, (_, i) => ({
+                dados: Array.from({ length: 10000 }, (_, i) => ({
                     h02Produto: i * 1,
                     h02Descricao: i * 2,
                     h02Unidade: i * 3,
@@ -252,7 +237,7 @@
                     h02Saldo2: i * 5,
                     h02Saldo3: i * 6,
                     h02Saldo4: i * 7
-                }))
+                })),
             })
         })
     </script>
