@@ -1,7 +1,6 @@
 const { createRoot } = ReactDOM;
 const { Table, Column, AutoSizer, ColumnSizer } = ReactVirtualized;
 
-// Adicionando o renderizador para o LayoutEditor na classe sdTabela
 class sdTabela extends React.Component {
     constructor(props) 
     {
@@ -15,17 +14,16 @@ class sdTabela extends React.Component {
         // Se encontrou um layout salvo, usar ele; caso contrário, usar a estrutura original
         const activeStructure = savedLayout || structure;
 
+        // No need to load saved column order since drag-and-drop is removed
         this.state = {
             sortBy: null,
             sortDirection: "ASC",
             filteredSearch: "",
             structure: activeStructure,
             dados: dados,
-            filteredData: dados,
-            showLayoutEditor: false // Estado para controlar a exibição do editor de layout
+            filteredData: dados
         }
         
-        // Resto do constructor permanece o mesmo
         this.valueToBeFound = null
         this.cachedRowData = null
         this.findControl = 0
@@ -44,6 +42,7 @@ class sdTabela extends React.Component {
         this.lastOrdedBy = {}
         this.rowHeight = 0
 
+        this.tableId = id
         this.targetDivId = target
         this.elemTarget = document.querySelector(this.targetDivId)
 
@@ -145,10 +144,6 @@ class sdTabela extends React.Component {
             },
             ...options
         }
-
-        // Vincular métodos ao 'this'
-        this.toggleLayoutEditor = this.toggleLayoutEditor.bind(this);
-        this.handleLayoutChange = this.handleLayoutChange.bind(this);
     }
 
     // Método para carregar um layout salvo
@@ -168,23 +163,24 @@ class sdTabela extends React.Component {
     }
 
     // Método para atualizar a estrutura da tabela
-    handleLayoutChange(newStructure) {
+    handleLayoutChange = (newStructure) => {
         this.setState({ structure: newStructure });
     }
 
-    // Método para abrir/fechar o editor de layout
-    toggleLayoutEditor() {
-        console.log("Toggle Layout Editor chamado");
+    // Método para abrir o editor de layout
+    toggleLayoutEditor = () => {
         this.setState(prevState => ({
             showLayoutEditor: !prevState.showLayoutEditor
         }));
     }
 
-    getStructure() {
-        return this.state.structure.filter((col) => col.visible == "S");
+    getStructure()
+    {
+        return this.state.structure.filter((col) => col.visible == "S")
     }
 
-    renderCell(cellData, rowIndex, dataKey) {
+    renderCell(cellData, rowIndex, dataKey)
+    {
         const column = this.state.structure.find(col => col.ref === dataKey);
 
         if (!column) return null;
@@ -195,7 +191,8 @@ class sdTabela extends React.Component {
         return this[`renderTypeCell_label`](cellData, column)
     }
 
-    currentProgramID() {
+    currentProgramID() 
+    {
         const { pathname } = location;
 
         const [, progID] = pathname.match(/\/(\w+)\V.php/) || [];
@@ -203,7 +200,8 @@ class sdTabela extends React.Component {
         return progID || '';
     }
 
-    renderTypeCell_input(value, coluna) {
+    renderTypeCell_input(value, coluna)
+    {
         const alinhamento = coluna.align || 'left';
         const estilo = { textAlign: alinhamento };
         
@@ -215,7 +213,8 @@ class sdTabela extends React.Component {
         });
     }
 
-    renderTypeCell_checkbox(value, coluna) {
+    renderTypeCell_checkbox(value, coluna)
+    {
         const alinhamento = coluna.align || 'left';
         const estilo = { textAlign: alinhamento };
 
@@ -227,7 +226,8 @@ class sdTabela extends React.Component {
         });
     }
 
-    renderTypeCell_label(value, coluna) {
+    renderTypeCell_label(value, coluna)
+    {
         const alinhamento = coluna.align || 'left';
         const estilo = { textAlign: alinhamento };
 
@@ -238,6 +238,7 @@ class sdTabela extends React.Component {
         }, value);
     }
 
+    // Simplified header renderer without drag-and-drop and resize functionality
     renderHeader(column, dataKey, sortBy, sortDirection) {
         const isSorted = sortBy === dataKey;
         
@@ -245,7 +246,7 @@ class sdTabela extends React.Component {
         
         const ICON_IS_SORT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="12" height="12" color="#333333"><path d="M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41zm255-105L177 64c-9.4-9.4-24.6-9.4-33.9 0L24 183c-15.1 15.1-4.4 41 17 41h238c21.4 0 32.1-25.9 17-41z"/></svg>`;
         const ICON_SORT_ASC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="12" height="12" color="#333333"><path d="M279 224H41c-21.4 0-32.1-25.9-17-41L143 64c9.4-9.4 24.6-9.4 33.9 0l119 119c15.2 15.1 4.5 41-16.9 41z"/></svg>`;
-        const ICON_SORT_DESC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="12" height="12" color="#333333"><path d="M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41z"/></svg>`;
+        const ICON_SORT_DESC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="12" height="12" color="#333333"><path d="M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41z"/>`;
 
         if (isSorted) { 
             sortIcon = sortDirection === "ASC" ? ICON_SORT_ASC : ICON_SORT_DESC; 
@@ -287,6 +288,7 @@ class sdTabela extends React.Component {
         });
 
         this.setState({
+            ...this.state,
             filteredData: sortedData,
             sortBy: sortBy,
             sortDirection: sortDirection
@@ -298,45 +300,33 @@ class sdTabela extends React.Component {
 
         if(lowerText == "") {
             this.setState({
+                ...this.state,
                 filteredData: this.state.dados
             });
             
             return;
         }
         
-        const filteredData = this.state.dados.filter(row => {
+        this.filteredData = this.state.dados.filter(row => {
             return Object.values(row).join("").toLowerCase().includes(lowerText);
         });
 
         this.setState({
-            filteredData: filteredData
+            ...this.state,
+            filteredData: this.filteredData
         });
     }
 
-    // Método render atualizado para incluir o LayoutEditor
     render() {
         const visibleColumns = this.getStructure();
-        
-        // IMPORTANTE: Renderizando LayoutEditor quando showLayoutEditor for true
-        let layoutEditorComponent = null;
-        if (this.state.showLayoutEditor) {
-            layoutEditorComponent = React.createElement(LayoutEditor, {
-                structure: this.state.structure,
-                tableId: this.tableId,
-                onLayoutChange: this.handleLayoutChange
-            });
-        }
+
+        console.log(this.options)
         
         return React.createElement("div", { className: "Painel" }, 
-            // Incluindo o componente LayoutEditor quando necessário
-            layoutEditorComponent,
-            
             React.createElement("div", { className: "PainelHeader"}, 
                 React.createElement("div", { className: "PainelHeaderConfigs"}, 
                     React.createElement("span", { 
                         id: "PainelHeaderConfigsOpenButton",
-                        onClick: this.toggleLayoutEditor, // IMPORTANTE: Adicionando onClick aqui
-                        style: { cursor: "pointer" }, // Adicionando cursor pointer para indicar que é clicável
                         dangerouslySetInnerHTML: { 
                             __html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18" height="18"><path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z"/></svg>`
                         }
@@ -349,7 +339,7 @@ class sdTabela extends React.Component {
                         id: this.inputSearchID,
                         value: this.state.filteredSearch,
                         onChange: (e) => {
-                            this.setState({ filteredSearch: e.target.value });
+                            this.setState({...this.state, filteredSearch: e.target.value });
                         },
                         onKeyUp: (e) => {
                             if (e.key === "Enter") this.filterTable();
@@ -361,25 +351,11 @@ class sdTabela extends React.Component {
                 React.createElement(AutoSizer, null, ({ width, height }) => {
                     // Calcular a largura total disponível (deixar margem para scroll)
                     const availableWidth = width - 20; // Reservar espaço para scrollbar
+                    // Calcular a largura total definida das colunas
+                    const totalDefinedWidth = visibleColumns.reduce((total, col) => total + (col.width || 100), 0);
                     
-                    // Procurar colunas fixas (sticky)
-                    const stickyColumns = visibleColumns.filter(col => col.sticky);
-                    const nonStickyColumns = visibleColumns.filter(col => !col.sticky);
-                    
-                    // Calcular a largura total definida das colunas não fixas
-                    const totalDefinedWidth = nonStickyColumns.reduce((total, col) => total + (col.width || 100), 0);
-                    
-                    // Calcular a largura das colunas fixas
-                    const stickyWidth = stickyColumns.reduce((total, col) => total + (col.width || 100), 0);
-                    
-                    // Espaço disponível para colunas não fixas
-                    const availableForNonSticky = availableWidth - stickyWidth;
-                    
-                    // Determinar o fator de escala para ajustar as colunas não fixas para preencher o espaço
-                    const scaleFactor = totalDefinedWidth < availableForNonSticky ? availableForNonSticky / totalDefinedWidth : 1;
-                    
-                    // Ordenar colunas para que as fixas apareçam primeiro
-                    const orderedColumns = [...stickyColumns, ...nonStickyColumns];
+                    // Determinar o fator de escala para ajustar as colunas para preencher o espaço
+                    const scaleFactor = totalDefinedWidth < availableWidth ? availableWidth / totalDefinedWidth : 1;
                     
                     return React.createElement(Table, {
                         width: width,
@@ -393,22 +369,18 @@ class sdTabela extends React.Component {
                         sortBy: this.state.sortBy,
                         sortDirection: this.state.sortDirection,
                         overscanRowCount: 10, // Carregar mais linhas para evitar problemas de scroll
-                        children: orderedColumns.map((col, colIndex) => {
-                            // Aplicar o fator de escala à largura da coluna se não for fixa
+                        children: visibleColumns.map((col) => {
+                            // Aplicar o fator de escala à largura da coluna
+                            // Assegura que a largura mínima de cada coluna seja respeitada
                             const minColWidth = 80; // Largura mínima para ver o conteúdo
                             const baseWidth = col.width || 100;
-                            
-                            // Se for uma coluna fixa, não aplicar fator de escala
-                            const adjustedWidth = col.sticky
-                                ? baseWidth
-                                : Math.max(minColWidth, Math.floor(baseWidth * scaleFactor));
+                            const adjustedWidth = Math.max(minColWidth, Math.floor(baseWidth * scaleFactor));
                             
                             return React.createElement(Column, {
                                 key: col.ref,
                                 label: col.name,
                                 dataKey: col.ref,
-                                className: ["TableCol", col.sticky ? "TableColSticky" : ""].join(" "),
-                                style: col.sticky ? { position: 'sticky', left: 0, zIndex: 1 } : {},
+                                className: ["TableCol"],
                                 disableSort: false,
                                 width: adjustedWidth,
                                 // Não utilize flexGrow para evitar colunas extras
@@ -431,11 +403,7 @@ class sdTabela extends React.Component {
             ),
             React.createElement("div", { className: "TableFooter" }, 
                 React.createElement("div", { className: "TableFooterTools"}, 
-                    this.options.buttons.map((item, index) => React.createElement("button", { 
-                        key: index,
-                        onClick: item.onClick,
-                        className: "TableFooterButton" 
-                    }, item.name))
+                    this.options.buttons.map((item, index) => React.createElement("button", { onClick: item.onClick }, item.name ))
                 ),
                 React.createElement("div", { className: "TableFooterCounter"},
                     React.createElement("span", { style: { marginRight: "2px" }}, this.state.filteredData.length ),

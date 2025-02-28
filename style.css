@@ -8,21 +8,39 @@ table {
     border-collapse: collapse;
     width: 100%;
 }
-th, td {
+
+th,
+td {
     padding: 10px;
     border: 1px solid #ccc;
 }
-input, label {
+
+input,
+label {
     width: 100%;
     display: block;
 }
 
-.TableColRight { display: flex; align-items: center; justify-content: flex-end; }
-.TableColLeft { display: flex; align-items: center; justify-content: flex-start; }
-.TableColCenter { display: flex; align-items: center; justify-content: center; }
+.TableColRight {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.TableColLeft {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.TableColCenter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 .ReactVirtualized__Table__headerRow,
-.ReactVirtualized__Table__row  {
+.ReactVirtualized__Table__row {
     display: flex;
 }
 
@@ -31,7 +49,8 @@ input, label {
     box-shadow: inset 0px 0px rgb(0, 0, 0, .15), inset -1px 0px rgb(0, 0, 0, .15), 0 1px rgb(0, 0, 0, .15);
 }
 
-.TableHeaderContent, .TableColContent {
+.TableHeaderContent,
+.TableColContent {
     padding-left: 10px;
     padding-right: 10px;
 }
@@ -67,7 +86,7 @@ input, label {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     cursor: pointer;
 }
 
@@ -89,13 +108,11 @@ input, label {
     padding: 5px;
 }
 
-.PainelHeaderSearchInput:hover
-{
+.PainelHeaderSearchInput:hover {
     border: solid 1px #1E90FF;
 }
 
-.PainelHeaderSearchInput:focus
-{
+.PainelHeaderSearchInput:focus {
     z-index: 2;
     border: solid 1px #1E90FF;
     box-shadow: 0 0 0 .15rem #007dfa3a;
@@ -113,7 +130,8 @@ input, label {
     align-items: center;
     justify-content: space-between;
     margin: 0 8px;
-    pointer-events: none; /* Previne interferência com drag/resize */
+    pointer-events: none;
+    /* Previne interferência com drag/resize */
 }
 
 
@@ -199,4 +217,249 @@ input, label {
     font-weight: bold;
     text-align: right;
     color: #333333;
+}
+
+/* ---------------------------- */
+/* Estilos para o Editor de Layout */
+.layout-editor-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.layout-editor-modal {
+    background-color: white;
+    border-radius: 4px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: auto;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.layout-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.layout-editor-close-btn {
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.layout-editor-info {
+    padding: 10px;
+    background-color: #e1f5fe;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.layout-editor-controls {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    justify-content: space-between;
+}
+
+.layout-editor-column-list {
+    max-height: 400px;
+    overflow: auto;
+    margin-bottom: 20px;
+}
+
+.layout-editor-column-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.layout-editor-column-row:hover {
+    background-color: #f9f9f9;
+}
+
+.layout-editor-drag-handle {
+    width: 30px;
+    text-align: center;
+    cursor: grab;
+}
+
+.layout-editor-column-checkbox {
+    width: 30px;
+    text-align: center;
+}
+
+.layout-editor-column-name {
+    flex-grow: 1;
+    padding-left: 10px;
+}
+
+.layout-editor-column-controls {
+    display: flex;
+    align-items: center;
+    width: 200px;
+}
+
+.layout-editor-pin-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.layout-editor-column-width {
+    flex-grow: 1;
+    margin: 0 10px;
+}
+
+.layout-editor-footer {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.layout-editor-layout-name {
+    padding: 8px;
+    margin-right: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.layout-editor-btn {
+    padding: 8px 16px;
+    margin: 0 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+}
+
+.layout-editor-btn-save {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+}
+
+.layout-editor-btn-apply {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+}
+
+.layout-editor-btn-delete {
+    background-color: #f44336;
+    color: white;
+    border: none;
+}
+
+.layout-editor-btn-default {
+    background-color: #607D8B;
+    color: white;
+    border: none;
+}
+
+.layout-editor-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Estilo para quando está arrastando */
+.layout-editor-dragging {
+    opacity: 0.5;
+}
+
+/* Estilos para o Editor de Layout */
+.layout-editor-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.layout-editor-modal {
+    background-color: white;
+    border-radius: 4px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: auto;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para colunas fixas (sticky) */
+.TableColSticky {
+    position: sticky !important;
+    left: 0;
+    z-index: 1;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+
+/* Melhorar o destaque ao passar o mouse nas linhas */
+.ReactVirtualized__Table__row:hover {
+    background-color: #f0f7ff !important;
+}
+
+/* Destacar cabeçalho da coluna que está sendo ordenada */
+.TableHeader:has(.TableCol__sortableHeaderIcon) {
+    background-color: #e1f5fe;
+}
+
+/* Estilo para o botão de configuração do layout */
+#PainelHeaderConfigsOpenButton {
+    cursor: pointer !important;
+    transition: transform 0.2s ease;
+}
+
+#PainelHeaderConfigsOpenButton:hover {
+    transform: scale(1.1);
+    color: #2196F3;
+}
+
+/* Melhorias visuais para cabeçalhos da tabela */
+.TableHeader {
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+    font-weight: bold;
+}
+
+/* Estilo para botões no rodapé da tabela */
+.TableFooterButton {
+    padding: 6px 12px;
+    margin-right: 8px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.TableFooterButton:hover {
+    background-color: #e0e0e0;
+}
+
+/* Melhorar a visibilidade das células alternadas */
+.TableColAlt {
+    background-color: #f9f9f9;
 }
